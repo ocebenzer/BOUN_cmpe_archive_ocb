@@ -1,0 +1,14 @@
+scalar i
+i = 42
+print(i)
+vector y[3]
+y = {1 2 14}
+print(y)
+printsep()
+print(y[2]) # 14
+printsep()
+matrix N[2,5]
+N = {1 2 3 4 6 3 7 3 5 3}
+print(N)
+printsep()
+print(N[3]) # 7,3
