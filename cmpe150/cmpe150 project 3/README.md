@@ -1,0 +1,1 @@
+This project reads a table input and based on the letters (F, R, C, D and N) modifies the table.
