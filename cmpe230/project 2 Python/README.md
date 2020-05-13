@@ -1,0 +1,1 @@
+This project reads a custom .mat code syntax and interpreted it
