@@ -1,1 +1,0 @@
-Genres = [dutch metal,gothic metal,gothic symphonic metal,power metal,progressive metal,symphonic metal]

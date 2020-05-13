@@ -215,7 +215,6 @@ trackDistance2([Danceability1, Energy1, Mode1, Speechiness1, Acousticness1, Inst
     getDistance([Danceability1, Energy1, Mode1, Speechiness1, Acousticness1, Instrumentalness1, Liveness1, Valence1],
         [Danceability2, Energy2, Mode2, Speechiness2, Acousticness2, Instrumentalness2, Liveness2, Valence2],Score).
 
-
 %discoverPlaylist, assuming Features input will be ~[0, 0.658, 0.927, 2, -6.925, 0, 0.0359, 0.0405, 0.861, 0.828, 0.358, 103.0, 333947, 4]
 discoverPlaylist(LikedGenres, DislikedGenres, Features, FileName, Playlist) :-
     %find the Tracks we need to sort
@@ -227,14 +226,16 @@ discoverPlaylist(LikedGenres, DislikedGenres, Features, FileName, Playlist) :-
     compareTo(trackDistance2, Features, FilteredIDs, Scores),
     %shuffle, sort, unshuffle
     maplist(shuffle, Scores, FilteredIDs, Pairs),
-    keysort(Pairs, SortedPairs),
+    keysort(Pairs, SortedPairsD),
+    sort(SortedPairsD, SortedPairs),
     maplist(unshuffle, SortedPairs, _, PrevIDList),
     %and cut!
     takeFirst30(PrevIDList, Playlist),
     %get the other stuff we need
     maplist(getNameOfATrack, Playlist, NameList),
     maplist(getArtistOfATrack, Playlist, ArtistList),
-    %only one Features to compare everything else
+    
+    %only one Features to compare ever.ything else
     compareTo(trackDistance2, Features, Playlist, DistanceList),
 
 
