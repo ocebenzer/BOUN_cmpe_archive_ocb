@@ -1,0 +1,14 @@
+Immediate addressing -> add 5
+Direct addressing, ~24 bit -> add the info (RAM)
+Indirect addressing, pointer-like, (A) -> add the info  < address (RAM) < address (RAM)
+Register -> add the info (Register)
+Register direct addressing -> add the info < address (Register)
+Register indirect addressing -> add the info < address (RAM) < address (Register)
+Displacement Register -> Arr[i] ; Arr in address (Register), i is info (RAM)
+Base Register -> Displacement Register, but with code instead of info ? (linking like)
+Stack Register -> Register that tells about where stack ends
+
+
+Unix commands:
+	vi:
+		:se nu //see number of lines

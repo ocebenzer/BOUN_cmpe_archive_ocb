@@ -1,0 +1,101 @@
+Im not sure whether i should use microsoft word or notepad for the documentation
+Hope it won't be a problem.
+
+2017400048 Omer Cihan Benzer cmpe230 a86 assembly, project1:
+
+----------------------
+
+The source code is divided into 3 part and a small writer loop:
+  1: input read
+  2: multiplication
+  3: output write
+  4: loop that types "Press anything to close." and shutting down after it
+
+I also used 2 functions which are:
+  =>READER, used in input read
+  =>DIVIDER, used in output write
+
+and finally there are the variables section
+  all variables are stored by word(16bit) but strings.
+  strings are stored by byte(8bit), there are 3 strings:
+    {stringone, stringtwo, stringend}
+
+note that source code is mostly commented
+
+-----------
+
+INPUT READ
+
+we can divide this part to 3 for each number:
+-loop that types "Please enter number (1 or 2):"
+-READER function that reads the input
+-storing the number in its appropriate variable {oneh, onel, twoh, twol}
+
+  >first loop uses stringone and stringtwo and outputs them using
+    ah=02, dl=[(stringone or stringtwo)]
+  >READER function:
+    to shortly talk about reader
+      1: get the input
+      2: if there is, multiply the old number by 8
+      3: add the input into the old number
+      4: when input is over (\n detected), return the number as dx:bx
+    READER also uses 4 variables to multiply old number by 8, called:
+      reader{a,b,c,d}
+  >storing the number in the variable is just two add functions after READER
+
+-----------
+
+MULTIPLICATION
+
+this is the backbone of the code
+it multiplies the numbers and adds them into a big number which is stored as:
+  outd4:outd3:outd2:outd1
+
+we can divide this part to 2 main actions:
+  -multiplying every possibility
+  -adding those possibilities
+
+  >multiplying every possibility means:
+    1: onel*twol   which is stored as out1h:out1l
+    2: onel*twoh   which is stored as out2h:out2l
+    3: oneh*twol   which is stored as out3h:out3l
+    4: oneh*twoh   which is stored as out4h:out4l
+  >adding them up is a bit complicated
+    1: outd1 is simply out1l
+    2: outd2 is out1h+out2l+out3l
+      problem is that there is a remainder which will go to outd3
+      lets call it temp2
+    3: outd3 is out2h+out3h+out4l+temp2
+      this also has a remainder, going to outd4
+      lets call it temp3
+    4: outd4 is out4h+temp3
+
+    note that what we called temp2 and temp3 are stored in the variable temp
+
+
+-----------
+
+OUTPUT WRITE
+
+the part where number is stored as octal number and printed one by one
+
+we can divide this part into 2 loops:
+  -dividing the number
+  -printing the divided number
+
+  > dividing the number uses the function DIVIDER
+    first of all, we have a counter that controls how many chars are pushed
+    1: DIVIDER is a loop that divides outd4:outd3:outd2:outd1 by 8
+    2: after the division, we push the remainder into stack
+      if all of outd{4,3,2,1} are zero, loop ends
+      else counter increased by one and loop continues
+  > printing just pops the number and prints it until the counter is zero.
+
+  in case the output is zero, we pushed 0 at the beginning
+    since all of outd{4,3,2,1} are zero we just push and print 0
+
+
+----------------------
+
+Hope my documentation is well-written.
+thank you
