@@ -1,1 +1,1 @@
-This Project uses a database fetched from Spotify, and searched it through custom functions
+This Project uses a database fetched from Spotify, and searches it through custom functions
