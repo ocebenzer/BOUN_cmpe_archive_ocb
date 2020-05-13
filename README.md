@@ -9,6 +9,8 @@ Contact me if you have any questions: ocbenzer@hotmail.com
 2. Python
 3. QT
 
+### cmpe250
+all 3 projects are on assistants' private repository
 ### cmpe260
 1. Prolog
 2. Scheme
