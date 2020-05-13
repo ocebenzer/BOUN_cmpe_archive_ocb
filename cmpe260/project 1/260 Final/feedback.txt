@@ -1,0 +1,18 @@
+Hello! Thanks for reading my feedback;
+
+=>The Project was quite well designed, all the errors got updated and ;but there were 2 major problems:
+a) The unicode characters made us suffer, even when we know that the testcases are ASCII based, we didn't have an ASCII based album-track-artist database.
+b) Some track IDs were included in "artist-album" database but not in "track" database, another problem that just made the project annoying.
+
+=>I had some questions to ask you in private, that I didn't wanted to as from piazza since they would share my files. 
+	I couldn't find your email, even though I knew you shared it. So here are some of my assumptions of the code:
+a) I included the ":- [artists, albums, tracks]. " part that you sent us into the solution.pl, not sure if it should've.
+b) At discoverPlaylist, I assumed Features input will be 
+	~[0, 0.658, 0.927, 2, -6.925, 0, 0.0359, 0.0405, 0.861, 0.828, 0.358, 103.0, 333947, 4], this wasn't stated AFAIK.
+c)I used too many predetermined functions SWI-Prolog database has assigned, I hope all of them were predetermined so they would work on the testCases:
+	I mostly looked up on : https://www.swi-prolog.org/pldoc/man?section=builtin
+	I also added my own functions based on these predetermined ones, such as compareTo(~maplist) and maplist/16
+
+Overall, as a student, I feel like even if the assignment was hard, the assistant actually tried to help us as much as possible.
+Thank you!
+Ömer
