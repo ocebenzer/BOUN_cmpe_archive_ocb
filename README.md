@@ -18,6 +18,9 @@ Contact me if you have any questions: ocbenzer@hotmail.com
 1. Prolog
 2. Scheme
 
+### cmpe321
+1. Node.js
+
 ### cmpe352
 **Readme that has:**
 - GitHub Repository
