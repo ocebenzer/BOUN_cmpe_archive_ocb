@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+    <title> OCB DBtify </title>
+    <meta charset="UTF-8">
+    <style>
+        * {
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+        }
+
+        /* Style the header */
+        .header {
+            background-color: #f1f1f1;
+            padding: 20px;
+        }
+
+        /* Style the top navigation bar */
+        .navBar {
+            overflow: hidden;
+            background-color: dimgray;
+        }
+
+        /* Extra sytle for Artist buttons */
+        .a_artist{
+            padding: 15px 2% !important;
+        }
+        /* Style the Buttons */
+        .navBar a {
+            float: left;
+            display: block;
+            color: #f2f2f2;
+            font-weight: bold;
+            padding: 15px 5%;
+             /* for smooth edges */
+            border-radius: 5px;
+            /* buttons to be at middle*/
+            /*
+            position: relative;
+            left: 20%;
+            */
+        }
+
+
+        /* Change color on hover */
+        .navBar a:hover {
+            background-color: lightgray;
+            color: black;
+            cursor: pointer;
+        }
+
+        /* Style the children of main (left, right, guest) */
+        .main .column {
+            background-color: whitesmoke;
+            float: left;
+            height: 800px;
+            padding: 50px 30px;
+        }
+
+        /* Style the left frame */
+        .left {
+            width: 68.5%;
+            margin: 1% 0.5% 1% 1%;
+            text-align: left;
+        }
+
+        /* Style the right frame */
+        .right {
+            width: 28.5%;
+            margin: 1% 1% 1% 0.5%;
+            text-align: left;
+        }
+
+        /* Style the guest frame */
+        .guest {
+            background-color: white;
+            margin: 0;
+            width: 100%;
+        }
+
+        /* Clear floats after the columns */
+        .main:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        /* Style the footer */
+        .footer {
+            background-color: #f1f1f1;
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1 class = "title"> DBtify UI</h1>
+        <p id = "login_info_text" style="color: gray"> Logged in as Guest </p>
+        <button id = "login_listener"> Login as Listener </button>
+        <button id = "login_artist"> Login as Artist </button>
+    </div>
+    <div class="navBar" id="topnav">
+        <a href="/" id="button_logout" style="float: right;">Home</a>
+    </div>
+    <div class="main" id="main">
+    </div>
+    <div class="footer">
+        <p>hurr durr im footer</p>
+    </div>
+
+    <script id="header_buttons">
+        document.getElementById("login_listener").onclick = function(){
+            // Popup returns the global login_data
+            login_data = popup_enter_name("Listener");
+            // Login as Listener
+            if (login_data.type == "Listener")
+            fetch("/api/is_listener/"+login_data.username)
+            .then((result)=>result.json())
+            .then(json =>{
+                if (json) console.log("User found in database:", login_data);
+                else console.warn("Warning, User not found in database:", login_data);
+            });
+            change_UI();
+        }
+        document.getElementById("login_artist").onclick = function(){
+            // Popup returns the global login_data
+            login_data = popup_enter_name("Artist");
+            // Login as Artist
+            if (login_data.type == "Artist")
+                fetch("/api/is_artist/"+login_data.username)
+                    .then((result)=>result.json())
+                    .then(json =>{
+                        if (json) console.log("User found in database:", login_data);
+                        else console.warn("Warning, User not found in database:", login_data);
+
+                    });
+            change_UI();
+        }
+        function change_UI(){
+            update_header();
+            update_navBar();
+            update_main();
+        }
+        function update_header(){
+            const login_info_text = document.getElementById("login_info_text");
+            // Change the login_info_text
+            login_info_text.innerText = "Logged in as " + login_data.type;
+            if (login_data.type === "Guest") return;
+            login_info_text.innerText += ": " + login_data.username;
+        }
+        function update_navBar(){
+            const topnav = document.getElementById("topnav");
+            const button_logout = document.getElementById("button_logout");
+            button_logout.innerText = "Logout";
+            reset(topnav);
+            topnav.appendChild(button_logout);
+            if (login_data.type === "Listener"){
+                // Create button: Songs
+                const button_songs = document.createElement("a");
+                button_songs.id = "button_songs";
+                button_songs.innerText = "Songs";
+                button_songs.onclick = () => {
+                    document.getElementById("left_title").innerText = "Songs:";
+                    fetch("/api/songs")
+                        .then(response => response.json())
+                        .then(json =>{
+                            console.log("Listener -> Button clicked: Songs",json);
+                            const left_list = document.getElementById("left_list");
+                            reset(left_list);
+                            reset(document.getElementById("left_ul"));
+                            json.map(song =>{
+                                let li = document.createElement("li"),
+                                    span = document.createElement("span"),
+                                    goto_song = document.createElement("button");
+                                span.innerText = song.title_song;
+                                span.style.fontWeight = "bold";
+                                span.style.float = "left";
+                                goto_song.innerText = "View";
+                                goto_song.style.float = "right";
+                                goto_song.onclick = () =>{
+                                    focusSong(song.id_song);
+                                }
+                                appendAll(li, [span, goto_song]);
+                                left_list.appendChild(li);
+                            })
+                        })
+                }
+                // Create button: Albums
+                const button_albums = document.createElement("a");
+                button_albums.id = "button_albums";
+                button_albums.innerText = "Albums";
+                button_albums.onclick = () => {
+                    document.getElementById("left_title").innerText = "Albums:";
+                    fetch("/api/albums")
+                        .then(response => response.json())
+                        .then(json =>{
+                            console.log("Listener -> Button clicked: Albums",json);
+                            const left_list = document.getElementById("left_list");
+                            reset(left_list);
+                            reset(document.getElementById("left_ul"));
+                            json.map(album =>{
+                                let li = document.createElement("li"),
+                                    span = document.createElement("span"),
+                                    goto_album = document.createElement("button");
+                                span.innerText = album.title_album;
+                                span.style.fontWeight = "bold";
+                                span.style.float = "left";
+                                goto_album.innerText = "View";
+                                goto_album.style.float = "right";
+                                goto_album.onclick = () =>{
+                                    focusAlbum(album.id_album);
+                                }
+                                appendAll(li, [span, goto_album]);
+                                left_list.appendChild(li);
+                            })
+                        })
+                }
+                // Create button: Artists
+                const button_artists = document.createElement("a");
+                button_artists.id = "button_artists";
+                button_artists.innerText = "Artists";
+                button_artists.onclick = () => {
+                    document.getElementById("left_title").innerText = "Artists:";
+                    fetch("/api/artists")
+                        .then(response => response.json())
+                        .then(json =>{
+                            console.log("Listener -> Button clicked: Artists",json);
+                            const left_list = document.getElementById("left_list");
+                            reset(left_list);
+                            reset(document.getElementById("left_ul"));
+                            json.map(artist =>{
+                                let li = document.createElement("li"),
+                                    span = document.createElement("span"),
+                                    goto_artist = document.createElement("button");
+                                span.innerText = artist.username;
+                                span.style.fontWeight = "bold";
+                                span.style.float = "left";
+                                goto_artist.innerText = "View";
+                                goto_artist.style.float = "right";
+                                goto_artist.onclick = () =>{
+                                    focusArtist(artist.username)
+                                }
+                                appendAll(li, [span, goto_artist]);
+                                left_list.appendChild(li);
+                            })
+                        })
+                }
+                // Create button: Listeners
+                const button_listeners = document.createElement("a");
+                button_listeners.id = "button_listeners";
+                button_listeners.innerText = "Listeners";
+                button_listeners.onclick = () => {
+                    document.getElementById("left_title").innerText = "Listeners:";
+                    fetch("/api/listeners")
+                        .then(response => response.json())
+                        .then(json =>{
+                            console.log("Listener -> Button clicked: Listeners",json);
+                            const left_list = document.getElementById("left_list");
+                            reset(left_list);
+                            reset(document.getElementById("left_ul"));
+                            json.map(listener =>{
+                                let li = document.createElement("li"),
+                                    span = document.createElement("span"),
+                                    goto_listener = document.createElement("button");
+                                span.innerText = listener.username;
+                                span.style.fontWeight = "bold";
+                                span.style.float = "left";
+                                goto_listener.innerText = "View Liked Songs";
+                                goto_listener.style.float = "right";
+                                goto_listener.onclick = () =>{
+                                    focusListener(listener.username);
+                                }
+                                appendAll(li, [span, goto_listener]);
+                                left_list.appendChild(li);
+                            })
+                        })
+                }
+                // Create button: Search
+                const button_search = document.createElement("a");
+                button_search.id = "button_search";
+                button_search.innerText = "Search";
+                button_search.onclick = () => {
+                    const is_Genre = confirm("Do you want to search for Genre?");
+                    let keyword = prompt(is_Genre ? "Genre Search\nPlease enter the keyword" : "Title Search\nPlease enter the keyword", is_Genre ? "Genre" : "Title");
+                    if (is_Genre) searchGenre(keyword);
+                    else searchSong(keyword);
+                }
+                appendAll(topnav, [button_songs, button_albums, button_artists, button_listeners, button_search]);
+                topnav.style.backgroundColor = "teal";
+            }
+            else if (login_data.type === "Artist"){
+                // Button: Create Album
+                const button_addAlbum = document.createElement("a");
+                button_addAlbum.className = "a_artist";
+                button_addAlbum.id = "button_createAlbum";
+                button_addAlbum.innerText = "Create new Album";
+                button_addAlbum.onclick = () => {
+                    const album_id = prompt("Please enter ID of the album");
+                    const album_genre = prompt("Please enter Genre");
+                    const album_title = prompt("Please enter the title");
+                    fetch(`/api/add_album/${album_id}/${login_data.username}/${album_genre}/${album_title}`)
+                        .then(response => response.json())
+                        .then(json =>{
+                            alert("Album added succesfully");
+                            update_main();
+                        })
+                }
+                // Button: Update Album
+                const button_updateAlbum = document.createElement("a");
+                button_updateAlbum.className = "a_artist";
+                button_updateAlbum.id = "button_updateAlbum";
+                button_updateAlbum.innerText = "Update an Album";
+                button_updateAlbum.onclick = () => {
+                    const album_id = prompt("Please enter ID of the album that will be updated");
+                    const album_genre = prompt("Please enter Genre");
+                    const album_title = prompt("Please enter the title of the album");
+                    fetch(`/api/update_album/${album_id}/${login_data.username}/${album_genre}/${album_title}`)
+                        .then(response => response.json())
+                        .then(json =>{
+                            alert("Album updated succesfully");
+                            update_main();
+                        })
+                }
+                // Button: Delete Album
+                const button_deleteAlbum = document.createElement("a");
+                button_deleteAlbum.className = "a_artist";
+                button_deleteAlbum.id = "button_deleteAlbum";
+                button_deleteAlbum.innerText = "Delete an Album";
+                button_deleteAlbum.onclick = () => {
+                    const album_id = prompt("Please enter ID of the album that you want to delete");
+                    fetch(`/api/delete_album/${album_id}`)
+                        .then(response => response.json())
+                        .then(json =>{
+                            alert("Album deleted succesfully");
+                            update_main();
+                        })
+                }
+                // Button: Create Song
+                const button_addSong = document.createElement("a");
+                button_addSong.className = "a_artist";
+                button_addSong.id = "button_createSong";
+                button_addSong.innerText = "Create new Song";
+                button_addSong.onclick = () => {
+                    const song_id = prompt("Please enter ID of the song");
+                    const album_id = prompt("Please enter ID of the album this song belongs");
+                    const album_title = prompt("Please enter the title of the song");
+                    fetch(`/api/add_song/${login_data.username}/${song_id}/${album_id}/${album_title}`)
+                        .then(response => response.json())
+                        .then(json =>{
+                            alert("Song added succesfully");
+                            update_main();
+                        })
+                }
+                // Button: Update Song
+                const button_updateSong = document.createElement("a");
+                button_updateSong.className = "a_artist";
+                button_updateSong.id = "button_createSong";
+                button_updateSong.innerText = "Update a Song";
+                button_updateSong.onclick = () => {
+                    const song_id = prompt("Please enter ID of the song");
+                    const song_title = prompt("Please enter a new title for the song");
+                    fetch(`/api/update_song/${login_data.username}/${song_id}/${song_title}`)
+                        .then(response => response.json())
+                        .then(json =>{
+                            alert("Song updated succesfully");
+                            update_main();
+                        })
+                }
+                // Button: Delete Song
+                const button_deleteSong = document.createElement("a");
+                button_deleteSong.className = "a_artist";
+                button_deleteSong.id = "button_createSong";
+                button_deleteSong.innerText = "Delete a Song";
+                button_deleteSong.onclick = () => {
+                    const song_id = prompt("Please enter ID of the song you want to delete");
+                    fetch(`/api/delete_song/${song_id}`)
+                        .then(response => response.json())
+                        .then(json =>{
+                            alert("Song deleted succesfully");
+                            update_main();
+                        })
+                }
+
+                appendAll(topnav,[button_addAlbum, button_updateAlbum, button_deleteAlbum, button_addSong, button_updateSong, button_deleteSong]);
+                topnav.style.backgroundColor = "steelblue";
+            }
+            else {// login_data.type === "Guest"
+                topnav.style.backgroundColor = "dimgray";
+                button_logout.innerText = "Home";
+            }
+            console.log("NavBar ->",topnav);
+        }
+        function update_main(){
+            const main = document.getElementById("main");
+            // Reset old children
+            reset(main)
+            // Insert children depending on login_data.type
+            if (login_data.type === "Listener"){
+                // Create children
+                const left = document.createElement("div");
+                left.className = "column left";
+                left.style.textAlign = "center";
+                const left_title = document.createElement("h2");
+                left_title.style.fontWeight = "normal";
+                left_title.innerText = "Welcome back, "+login_data.username;
+                left_title.id = "left_title";
+                const left_list = document.createElement("ol");
+                left_list.id = "left_list";
+                left_list.style.display = "inline-grid";
+                const left_ul = document.createElement("ul");
+                left_ul.id = "left_ul";
+
+                const right = document.createElement("div");
+                right.className = "column right";
+                right.style.textAlign = "center";
+                const right_title = document.createElement("h2");
+                right_title.innerText = "Liked Songs";
+                right_title.id = "right_title";
+                const right_list = document.createElement("ol");
+                right_list.id = "right_list";
+                right_list.style.display = "inline-grid";
+                // Add Liked Songs to right column
+                fetch("/api/liked_songs/"+login_data.username)
+                    .then(response => response.json())
+                    .then(json =>{
+                        console.log("Right column -> Liked Songs:",json);
+                        reset(right_list);
+                        json.map(song =>{
+                            let li = document.createElement("li"),
+                                span = document.createElement("span"),
+                                goto_song = document.createElement("button");
+                            span.innerText = song.title_song;
+                            span.style.fontWeight = "bold";
+                            span.style.float = "left";
+                            goto_song.innerText = "View";
+                            goto_song.style.float = "right";
+                            goto_song.onclick = () =>{
+                                focusSong(song.id_song);
+                            }
+                            appendAll(li, [span, goto_song]);
+                            right_list.appendChild(li);
+                        })
+                    })
+
+                // Append children
+                appendAll(left, [left_title, left_list, left_ul]);
+                appendAll(right, [right_title, right_list]);
+                appendAll(main, [left,right]);
+            }
+            else if (login_data.type === "Artist"){
+                // Create children
+                const left = document.createElement("div");
+                left.className = "column left";
+                left.style.textAlign = "center";
+                const left_title = document.createElement("h2");
+                left_title.style.fontWeight = "normal";
+                left_title.innerText = "Welcome back, "+login_data.username;
+                left_title.id = "left_title";
+                const left_list = document.createElement("ol");
+                left_list.id = "left_list";
+                left_list.style.display = "inline-grid";
+                const left_ul = document.createElement("ul");
+                left_ul.id = "left_ul";
+
+
+                const right = document.createElement("div");
+                right.className = "column right";
+                right.style.textAlign = "center";
+                const right_title = document.createElement("h2");
+                right_title.innerText = "Album List";
+                right_title.id = "right_title";
+                const right_list = document.createElement("ol");
+                right_list.id = "right_list";
+                right_list.style.display = "inline-grid";
+                // Add Albums to right column
+                fetch("/api/artist/"+login_data.username)
+                    .then(response => response.json())
+                    .then(json =>{
+                        console.log("Right column -> Album List:",json.albums);
+                        reset(right_list);
+                        json.albums.map(album =>{
+                            let li = document.createElement("li"),
+                                span = document.createElement("span"),
+                                goto_song = document.createElement("button");
+                            span.innerText = album.title_album + "(" + album.genre + ")";
+                            span.style.fontWeight = "bold";
+                            span.style.float = "left";
+                            goto_song.innerText = "View";
+                            goto_song.style.float = "right";
+                            goto_song.onclick = () =>{
+                                focusAlbum(album.id_album);
+                            }
+                            appendAll(li, [span, goto_song]);
+                            right_list.appendChild(li);
+                        })
+                    })
+
+                // Append children
+                appendAll(left, [left_title, left_list, left_ul]);
+                appendAll(right, [right_title, right_list]);
+                appendAll(main, [left,right]);
+            }
+            else{// login_data.type === "Guest"
+                // Create child
+                const child = document.createElement("h2")
+                child.className = "column guest";
+                child.style.fontWeight = "normal"
+                child.innerText = "Please Login to continue";
+                // Append child
+                main.appendChild(child);
+            }
+        }
+    </script>
+    <script id="UI Updates">
+        function focusSong(songID){
+            const left_title = document.getElementById("left_title")
+            const left_list = document.getElementById("left_list")
+            const ul = document.getElementById("left_ul");
+            reset(left_list);
+            reset(ul);
+            fetch("/api/song/"+songID)
+                .then(response => response.json())
+                .then(song => {
+                    console.log("Left Column -> Focus on Song: ",song);
+                    left_title.innerText = "Song: " + song.song.title_song;
+                    const likes = document.createElement("div"),
+                        id_song = document.createElement("div"),
+                        id_album = document.createElement("div"),
+                        div_button = document.createElement("div"),
+                        button_like = document.createElement("button");
+                    likes.innerText = "Likes: " + song.song.likes_song;
+                    id_song.innerText = "ID: " + song.song.id_song;
+                    id_album.innerText = "Album: " + (song.song.id_album ? song.song.title_album : "None");
+                    if (song.song.id_album) {
+                        const view_album = document.createElement("button");
+                        view_album.innerText = "View Album";
+                        view_album.onclick = ()=>{
+                            focusAlbum(song.song.id_album);
+                        }
+                        div_button.appendChild(view_album);
+                    }
+                    button_like.innerText = "Like Song";
+                    button_like.onclick = () =>{
+                            like_song(login_data.username, song.song);
+                        }
+                    div_button.appendChild(button_like);
+                    const song_artists_title = document.createElement("h3");
+                    song_artists_title.innerText = "Artists of this song";
+                    let song_artists_list = document.createElement("ol");
+                    song_artists_list.style.display = "inline-grid";
+                    if(!song.artists.length){
+                        song_artists_list = document.createElement("span");
+                        song_artists_list.innerText = "No Artist found";
+                    }
+                    else
+                    {
+                        song.artists.map(artist => {
+                            const li = document.createElement("li");
+                            const li_name = document.createElement("span");
+                            li_name.innerText = artist.name + " " + artist.surname;
+                            li_name.style.float = "left";
+                            const li_button = document.createElement("button");
+                            li_button.innerText = "View";
+                            li_button.style.float = "right";
+                            li_button.onclick = () =>{
+                                focusArtist(artist.username);
+                            }
+                            appendAll(li, [li_name, li_button]);
+                            song_artists_list.appendChild(li);
+                        })
+                    }
+                    appendAll(ul, [likes, id_song, id_album, div_button, song_artists_title, song_artists_list]);
+                })
+        }
+        function focusAlbum(albumID) {
+            const left_title = document.getElementById("left_title")
+            const left_list = document.getElementById("left_list")
+            const ul = document.getElementById("left_ul");
+            reset(left_list);
+            reset(ul);
+            fetch("/api/album/"+albumID)
+                .then(response => response.json())
+                .then(album => {
+                    console.log("Left Column -> Focus on Album: ",album);
+                    left_title.innerText = "Album: " + album.album.title_album;
+                    const likes = document.createElement("div"),
+                        id_album = document.createElement("div"),
+                        genre = document.createElement("div"),
+                        artist = document.createElement("div"),
+                        div_button = document.createElement("div"),
+                        button_like = document.createElement("button");
+                    likes.innerText = "Likes(Album): " + album.album.likes_album;
+                    id_album.innerText = "ID: " + album.album.id_album;
+                    genre.innerText = "Genre: " + album.album.genre;
+                    artist.innerText = "Artist(Owner): " + album.album.artist;
+                    button_like.innerText = "Like Album";
+                    button_like.onclick = () =>{
+                        like_album(login_data.username, album.album);
+                    }
+                    div_button.appendChild(button_like);
+
+                    //Songs in this album
+                    const album_songs_title = document.createElement("h3");
+                    album_songs_title.innerText = "Songs in this album";
+                    let album_songs_list = document.createElement("ol");
+                    album_songs_list.style.display = "inline-grid";
+                    if(!album.songs.length){
+                        album_songs_list = document.createElement("span");
+                        album_songs_list.innerText = "No Song found";
+                    }
+                    else
+                    {
+                        album.songs.map(song => {
+                            const li = document.createElement("li");
+                            const li_name = document.createElement("span");
+                            li_name.innerText = song.title_song;
+                            li_name.style.float = "left";
+                            const li_button = document.createElement("button");
+                            li_button.innerText = "View";
+                            li_button.style.float = "right";
+                            li_button.onclick = () =>{
+                                focusSong(song.id_song);
+                            }
+                            appendAll(li, [li_name, li_button]);
+                            album_songs_list.appendChild(li);
+                        })
+                    }
+
+                    //Artists in this album
+                    const album_artists_title = document.createElement("h3");
+                    album_artists_title.innerText = "Artists contributed to this Album";
+                    let album_artists_list = document.createElement("ol");
+                    album_artists_list.style.display = "inline-grid";
+                    if(!album.artists.length){
+                        album_artists_list = document.createElement("span");
+                        album_artists_list.innerText = "No Artist found";
+                    }
+                    else
+                    {
+                        album.artists.map(artist => {
+                            const li = document.createElement("li");
+                            const li_name = document.createElement("span");
+                            li_name.style.float = "left";
+                            li_name.innerText = artist.name + " " + artist.surname;
+                            const li_button = document.createElement("button");
+                            li_button.style.float = "right";
+                            li_button.innerText = "View";
+                            li_button.onclick = () =>{
+                                focusArtist(artist.username);
+                            }
+                            appendAll(li, [li_name, li_button]);
+                            album_artists_list.appendChild(li);
+                        })
+                    }
+                    appendAll(ul, [likes, id_album, genre, artist, div_button, album_songs_title, album_songs_list, album_artists_title, album_artists_list]);
+                })
+        }
+        function focusArtist(artistName) {
+            const left_title = document.getElementById("left_title")
+            const left_list = document.getElementById("left_list")
+            const ul = document.getElementById("left_ul");
+            reset(left_list);
+            reset(ul);
+            fetch("/api/artist/"+artistName)
+                .then(response => response.json())
+                .then(artist => {
+                    console.log("Left Column -> Focus on Artist: ",artist);
+                    left_title.innerText = "Artist: " + artist.artist.name + " " + artist.artist.surname;
+                    const username = document.createElement("div"),
+                        likes = document.createElement("div");
+                    username.innerText = "Username: " + artist.artist.username;
+                    likes.innerText = "Likes(Artist): " + artist.artist.likes_artist;
+
+                    // Songs of the artist
+                    const artist_songs_title = document.createElement("h3");
+                    artist_songs_title.innerText = "Songs of the Artist";
+                    let artist_songs_list = document.createElement("ol");
+                    artist_songs_list.style.display = "inline-grid";
+                    if(!artist.songs.length){
+                        artist_songs_list = document.createElement("span");
+                        artist_songs_list.innerText = "No Song found";
+                    }
+                    else
+                    {
+                        artist.songs.map(song => {
+                            const li = document.createElement("li");
+                            const li_name = document.createElement("span");
+                            li_name.innerText = song.title_song;
+                            li_name.style.float = "left";
+                            const li_button = document.createElement("button");
+                            li_button.innerText = "View";
+                            li_button.style.float = "right";
+                            li_button.onclick = () =>{
+                                focusSong(song.id_song);
+                            }
+                            appendAll(li, [li_name, li_button]);
+                            artist_songs_list.appendChild(li);
+                        })
+                    }
+
+                    // Albums of the artist
+                    const artist_albums_title = document.createElement("h3");
+                    artist_albums_title.innerText = "Albums of the Artist";
+                    let artist_albums_list = document.createElement("ol");
+                    artist_albums_list.style.display = "inline-grid";
+                    if(!artist.albums.length){
+                        artist_albums_list = document.createElement("span");
+                        artist_albums_list.innerText = "No Album found";
+                    }
+                    else{
+                        artist.albums.map(album =>{
+                            const li = document.createElement("li");
+                            const li_name = document.createElement("span");
+                            li_name.style.float = "left";
+                            li_name.innerText = album.title_album;
+                            const li_button = document.createElement("button");
+                            li_button.style.float = "right";
+                            li_button.innerText = "View";
+                            li_button.onclick = () =>{
+                                focusAlbum(album.id_album);
+                            }
+                            appendAll(li, [li_name, li_button]);
+                            artist_albums_list.appendChild(li);
+                        })
+                    }
+                    // Artist Collaborations
+                    const artist_artists_title = document.createElement("h3");
+                    artist_artists_title.innerText = "Artists Collaborated with the Artist";
+                    let artist_artists_list = document.createElement("ol");
+                    artist_artists_list.style.display = "inline-grid";
+                    if(!artist.artists.length){
+                        artist_artists_list = document.createElement("span");
+                        artist_artists_list.innerText = "No Artist found";
+                    }
+                    else{
+                        artist.artists.map(artist =>{
+                            const li = document.createElement("li");
+                            const li_name = document.createElement("span");
+                            li_name.style.float = "left";
+                            li_name.innerText = artist.artist;
+                            const li_button = document.createElement("button");
+                            li_button.style.float = "right";
+                            li_button.innerText = "View";
+                            li_button.onclick = () =>{
+                                focusArtist(artist.artist);
+                            }
+                            appendAll(li, [li_name, li_button]);
+                            artist_artists_list.appendChild(li);
+                        })
+                    }
+                    appendAll(ul, [username, likes,
+                        artist_songs_title, artist_songs_list,
+                        artist_albums_title, artist_albums_list,
+                        artist_artists_title, artist_artists_list]);
+                })
+        }
+        function focusListener(listenerName){
+            const left_title = document.getElementById("left_title")
+            const left_list = document.getElementById("left_list")
+            const ul = document.getElementById("left_ul");
+            reset(left_list);
+            reset(ul);
+            left_title.innerText = `\"${listenerName}\"s Liked Songs: `;
+            fetch("/api/liked_songs/"+listenerName)
+                .then(response => response.json())
+                .then(listener =>{
+                    console.log("Left Column -> Focus Listener(Liked Songs):", listener);
+                    const left_list = document.getElementById("left_list");
+                    reset(left_list);
+                    reset(document.getElementById("left_ul"));
+                    if (!listener.length){
+                        let span = document.createElement("span");
+                        span.innerText = "No Liked songs";
+                        left_list.appendChild(span);
+                    }
+                    listener.map(song =>{
+                        let li = document.createElement("li"),
+                            span = document.createElement("span"),
+                            goto_song = document.createElement("button");
+                        span.innerText = song.title_song;
+                        span.style.fontWeight = "bold";
+                        span.style.float = "left";
+                        goto_song.innerText = "View";
+                        goto_song.style.float = "right";
+                        goto_song.onclick = () =>{
+                            console.log("Button clicked\nView song:", song);
+                            focusSong(song.id_song);
+                        }
+                        appendAll(li, [span, goto_song]);
+                        left_list.appendChild(li);
+                    })
+                })
+        }
+        function searchGenre(keyword) {
+            fetch("api/search_genre/"+keyword)
+                .then(result => result.json())
+                .then(songs =>{
+                    console.log("Search -> Genre -> "+ keyword,songs);
+                    const left_list = document.getElementById("left_list");
+                    const left_title = document.getElementById("left_title");
+                    left_title.innerText = `Search Genre: "${keyword}":`;
+                    reset(left_list);
+                    reset(document.getElementById("left_ul"));
+                    songs.map(song =>{
+                        let li = document.createElement("li"),
+                            span = document.createElement("span"),
+                            goto_song = document.createElement("button");
+                        span.innerText = song.title_song;
+                        span.style.fontWeight = "bold";
+                        span.style.float = "left";
+                        goto_song.innerText = "View";
+                        goto_song.style.float = "right";
+                        goto_song.onclick = () =>{
+                            focusSong(song.id_song);
+                        }
+                        appendAll(li, [span, goto_song]);
+                        left_list.appendChild(li);
+                    })
+                })
+        }
+        function searchSong(keyword) {
+            fetch("api/search_title/"+keyword)
+            .then(result => result.json())
+            .then(songs =>{
+                console.log("Search -> Song -> "+keyword,songs);
+                const left_list = document.getElementById("left_list");
+                const left_title = document.getElementById("left_title");
+                left_title.innerText = `Search song: "${keyword}":`;
+                reset(left_list);
+                reset(document.getElementById("left_ul"));
+                songs.map(song =>{
+                    let li = document.createElement("li"),
+                        span = document.createElement("span"),
+                        goto_song = document.createElement("button");
+                    span.innerText = song.title_song;
+                    span.style.fontWeight = "bold";
+                    span.style.float = "left";
+                    goto_song.innerText = "View";
+                    goto_song.style.float = "right";
+                    goto_song.onclick = () =>{
+                        focusSong(song.id_song);
+                    }
+                    appendAll(li, [span, goto_song]);
+                    left_list.appendChild(li);
+                })
+            })
+        }
+    </script>
+    <script id="utils">
+        let login_data = {
+            "type" : "Guest"
+        }
+        function appendAll(parent, child_list){
+            child_list.forEach((child) =>{
+                parent.appendChild(child);
+            })
+        }
+        function reset(parent){
+            while (parent.firstChild){
+                parent.removeChild(parent.lastChild);
+            }
+        }
+        function popup_enter_name(type) {
+            let username = prompt(`Login as ${type}\nPlease enter your name:`, "can");
+            if (username == null || username === "") {
+                //alert("Login Failed\nPlease enter a name");
+                login_data = {type: "Guest"};
+            }
+            else {
+                login_data = {type: type, username: username};
+                //alert(`Login succesful\n${login_data.type}: ${login_data.username}`);
+            }
+            console.log("Login ->",login_data);
+            return login_data;
+        }
+        window.onload = function (){
+            change_UI();
+        }
+    </script>
+    <script id="Listener Like Functions">
+        function like_song(username, song) {
+            fetch("/api/like_song/"+username+"/"+song.id_song)
+                .then(response => response.json())
+                .then(response => {
+                    console.log("Like Song response: ",response);
+                    const was_liked = response.message == "&Records: 0  Duplicates: 0  Warnings: 0";
+                    if (was_liked){
+                        alert("Warning! " + username + (" has liked the song: ") + song.title_song + " before.")
+                    }
+                    else{
+                        alert( username + " has liked the song: " + song.title_song)
+                        update_main();
+                    }
+                })
+        }
+        function like_album(username, album) {
+            fetch("/api/like_album/"+username+"/"+album.id_album)
+                .then(response => response.json())
+                .then(response => {
+                    console.log("Like Album response: ",response);
+                    const was_liked = response.message == "&Records: 0  Duplicates: 0  Warnings: 0";
+                    if (was_liked){
+                        alert("Warning! " + username + (" has liked the album: ") + album.title_album + " before.")
+                    }
+                    else{
+                        alert( username + " has liked the album: " +album.title_album)
+                        update_main();
+                    }
+                })
+        }
+    </script>
+</body>
+
+</html>
