@@ -3,7 +3,7 @@ The Repository where I share my Project assignments
 
 Contact me if you have any questions: ocbenzer@hotmail.com
 
-## Contents:
+## Projects' languages:
 ### cmpe150
 1. Java
 2. Java
@@ -21,7 +21,14 @@ Contact me if you have any questions: ocbenzer@hotmail.com
 ### cmpe321
 1. Node.js
 
-### cmpe352
+### cmpe322
+1. C++
+2. C++
+
+### cmpe344
+1. Verilog
+
+### cmpe352/cmpe451
 **Readme that has:**
 - GitHub Repository
-- Its Wiki page
+- The related wiki page
